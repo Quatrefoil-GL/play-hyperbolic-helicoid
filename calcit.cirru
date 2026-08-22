@@ -12,11 +12,11 @@
           :code $ quote
             defcomp comp-container (store)
               let
-                  states $ :states store
-                  cursor $ :cursor states
-                  state $ either (:data states)
+                  states $ field store :states
+                  cursor $ field states :cursor
+                  state $ either (field states :data)
                     {} $ :tab :portal
-                  tab $ :tab state
+                  tab $ field state :tab
                   scaled 0.02
                 scene ({})
                   group
@@ -31,6 +31,12 @@
                       :position $ [] 0 60 0
           :examples $ []
           :schema $ :: 'Dynamic
+        |field $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn field (value key)
+              option:unwrap-or (get value key) nil
+          :examples $ []
+          :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require
@@ -43,8 +49,8 @@
           :code $ quote
             defcomp comp-helicoid (states)
               let
-                  cursor $ :cursor states
-                  state $ or (:data states)
+                  cursor $ field states :cursor
+                  state $ or (field states :data)
                     {} (:speed 48) (:bend 0) (:radius 20)
                 group ({})
                   tube $ {} (:points-fn helicoid-fn) (:factor state) (:radius 0.2) (:tubular-segments 800) (:radial-segments 12)
@@ -61,7 +67,7 @@
                   ; comp-control state cursor :speed ([] 40 10 0) 0.3 ([] 0 100) 0xffffdd
                   comp-value
                     {} (:speed 0.3) (:show-text? true) (:label |speed)
-                      :value $ :speed state
+                      :value $ field state :speed
                       :position $ [] 40 10 0
                       :bound $ [] 0 100
                       :color 0xffffdd
@@ -69,7 +75,7 @@
                       d! cursor $ assoc state :speed v1
                   comp-value
                     {} (:speed 0.01) (:show-text? true) (:label |bend)
-                      :value $ :bend state
+                      :value $ field state :bend
                       :position $ [] 48 10 0
                       :bound $ [] 0 10
                       :color 0xaaaaff
@@ -77,7 +83,7 @@
                       d! cursor $ assoc state :bend v1
                   comp-value
                     {} (:speed 0.4) (:show-text? true) (:label |radius)
-                      :value $ :radius state
+                      :value $ field state :radius
                       :position $ [] 56 10 0
                       :bound $ [] 1 60
                       :color 0xaa7777
@@ -85,58 +91,88 @@
                       d! cursor $ assoc state :radius v1
           :examples $ []
           :schema $ :: 'Dynamic
+        |ffi-object $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn ffi-object (value) (unsafe-coerce value JsObject)
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |field $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn field (value key)
+              option:unwrap-or (get value key) nil
+          :examples $ []
+          :schema $ :: 'Dynamic
         |helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn helicoid-fn (t state)
               let
-                  r $ :radius state
-                  v $ :speed state
+                  r $ field state :radius
+                  v $ field state :speed
                   angle $ * t &PI
                   rot-angle $ * v (squeezing-01 t)
-                rotate-wave (- t 0.5) (:bend state)
+                rotate-wave (- t 0.5) (field state :bend)
                   []
-                    * r (js/Math.sin angle) (js/Math.cos rot-angle)
-                    * r $ js/Math.cos angle
-                    * r (js/Math.sin angle) (js/Math.sin rot-angle)
+                    * r
+                      js-number $ js/Math.sin angle
+                      js-number $ js/Math.cos rot-angle
+                    * r $ js-number (js/Math.cos angle)
+                    * r
+                      js-number $ js/Math.sin angle
+                      js-number $ js/Math.sin rot-angle
           :examples $ []
           :schema $ :: 'Dynamic
         |helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn helicoid-fn-2 (t state)
               let
-                  r $ :radius state
-                  v $ :speed state
+                  r $ field state :radius
+                  v $ field state :speed
                   angle $ * t &PI
                   rot-angle $ + &PI
                     * v $ squeezing-01 t
-                rotate-wave (- t 0.5) (:bend state)
+                rotate-wave (- t 0.5) (field state :bend)
                   []
-                    * r (js/Math.sin angle) (js/Math.cos rot-angle)
-                    * r $ js/Math.cos angle
-                    * r (js/Math.sin angle) (js/Math.sin rot-angle)
+                    * r
+                      js-number $ js/Math.sin angle
+                      js-number $ js/Math.cos rot-angle
+                    * r $ js-number (js/Math.cos angle)
+                    * r
+                      js-number $ js/Math.sin angle
+                      js-number $ js/Math.sin rot-angle
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |js-number $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn js-number (value) (unsafe-coerce value Number)
           :examples $ []
           :schema $ :: 'Dynamic
         |rotate-wave $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn rotate-wave (dx bend v)
               let
-                  q1 $ new THREE/Quaternion (nth v 0) (nth v 1) (nth v 2) 0
-                  q2 $ new THREE/Quaternion 0 0 0
+                  q1 $ ffi-object
+                    new THREE/Quaternion (nth v 0) (nth v 1) (nth v 2) 0
+                  q2 $ ffi-object (new THREE/Quaternion 0 0 0)
                 .!setFromAxisAngle q2 (new THREE/Vector3 1 0 0) (* bend &PI dx)
                 ; js/console.log q2
                 let
-                    ret $ -> q1
-                      .!premultiply $ .!invert (.!clone q2)
-                      .!multiply q2
+                    q3 $ ffi-object
+                      .!premultiply q1 $ ffi-object
+                        .!invert $ ffi-object (.!clone q2)
+                    ret $ ffi-object (.!multiply q3 q2)
                   ; js/console.log ret
-                  [] (.-x ret) (.-y ret) (.-z ret)
+                  []
+                    .-x $ ffi-object ret
+                    .-y $ ffi-object ret
+                    .-z $ ffi-object ret
           :examples $ []
           :schema $ :: 'Dynamic
         |squeezing-01 $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn squeezing-01 (t0)
               + 0.5 $ /
-                js/Math.asin $ - (* 2 t0) 1
+                js-number $ js/Math.asin
+                  - (* 2 t0) 1
                 , &PI
           :examples $ []
           :schema $ :: 'Dynamic
@@ -144,26 +180,34 @@
           :code $ quote
             defn surface-fn (t d state)
               let
-                  r $ :radius state
-                  v $ :speed state
+                  r $ field state :radius
+                  v $ field state :speed
                   angle $ &* t &PI
                   rot-angle $ &* v (squeezing-01 t)
-                  out-r $ &* r (js/Math.tan angle)
-                  distance $ &/ r (js/Math.cos angle)
+                  out-r $ &* r
+                    js-number $ js/Math.tan angle
+                  distance $ &/ r
+                    js-number $ js/Math.cos angle
                   y0 $ &- r distance
                   angle2 $ &- (&* 0.5 &PI) angle
                   theta $ * 2 angle2 (- d 0.5)
-                  narrow? $ &< (js/Math.abs angle2) 0.001
+                  narrow? $ &<
+                    js-number $ js/Math.abs angle2
+                    , 0.001
                   dx $ if narrow?
                     * 2 r $ - d 0.5
-                    * r (js/Math.tan angle) (js/Math.sin theta)
+                    * r
+                      js-number $ js/Math.tan angle
+                      js-number $ js/Math.sin theta
                   dy $ if narrow? r
-                    &+ y0 $ * r (js/Math.tan angle) (js/Math.cos theta)
-                rotate-wave (&- t 0.5) (:bend state)
+                    &+ y0 $ * r
+                      js-number $ js/Math.tan angle
+                      js-number $ js/Math.cos theta
+                rotate-wave (&- t 0.5) (field state :bend)
                   []
-                    &* dx $ js/Math.cos rot-angle
+                    &* dx $ js-number (js/Math.cos rot-angle)
                     &- r dy
-                    &* dx $ js/Math.sin rot-angle
+                    &* dx $ js-number (js/Math.sin rot-angle)
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -195,12 +239,24 @@
                   reset! *store store
           :examples $ []
           :schema $ :: 'Dynamic
+        |ffi-object $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn ffi-object (value) (unsafe-coerce value JsObject)
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |js-number $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn js-number (value) (unsafe-coerce value Number)
+          :examples $ []
+          :schema $ :: 'Dynamic
         |main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn main! () (load-console-formatter!) (inject-tree-methods)
               set-perspective-camera! $ {} (:fov 40) (:near 0.1) (:far 100)
                 :position $ [] 0 0 8
-                :aspect $ / js/window.innerWidth js/window.innerHeight
+                :aspect $ /
+                  js-number $ .-innerWidth (ffi-object js/window)
+                  js-number $ .-innerHeight (ffi-object js/window)
               let
                   canvas-el $ js/document.querySelector |canvas
                 init-renderer! canvas-el $ {} (:background 0x110022)
