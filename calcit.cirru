@@ -132,9 +132,9 @@
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
               rotate-wave (- t 0.5) bend $ []
-                * r (math-sin angle) (math-cos rot-angle)
-                * r $ math-cos angle
-                * r (math-sin angle) (math-sin rot-angle)
+                * r (sin angle) (cos rot-angle)
+                * r $ cos angle
+                * r (sin angle) (sin rot-angle)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number $ :: 'Map 'Tag 'Number
@@ -148,9 +148,9 @@
                 angle $ * t &PI
                 rot-angle $ + &PI $ * v (squeezing-01 t)
               rotate-wave (- t 0.5) bend $ []
-                * r (math-sin angle) (math-cos rot-angle)
-                * r $ math-cos angle
-                * r (math-sin angle) (math-sin rot-angle)
+                * r (sin angle) (cos rot-angle)
+                * r $ cos angle
+                * r (sin angle) (sin rot-angle)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number $ :: 'Map 'Tag 'Number
@@ -158,20 +158,6 @@
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
             as-number $ js/Math.asin x
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
-        'math-cos $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn math-cos (x)
-            as-number $ js/Math.cos x
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
-        'math-sin $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn math-sin (x)
-            as-number $ js/Math.sin x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Number
@@ -201,7 +187,7 @@
                 q1 $ quaternion 0 x y z
                 angle $ * bend &PI dx
                 half-angle $ * 0.5 angle
-                q2 $ quaternion (math-cos half-angle) (math-sin half-angle) 0 0
+                q2 $ quaternion (cos half-angle) (sin half-angle) 0 0
                 ret $ &q*
                   &q* (q-inverse q2) q1
                   , q2
@@ -210,6 +196,13 @@
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number 'Number $ :: 'List 'Number
             :return $ :: 'List 'Number
+          :tests $ [] $ %{} 'TestEntry (:name |identity-rotation)
+            :code $ quote $ do
+              assert= ([] 1 2 3 0)
+                rotate-wave 0.2 0 $ [] 1 2 3
+              assert= ([] 1 2 3 0)
+                rotate-wave 0 2 $ [] 1 2 3
+            :tags $ #{} :geometry
         'squeezing-01 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn squeezing-01 (t0)
             + 0.5 $ /
@@ -227,20 +220,20 @@
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
                 out-r $ * r $ math-tan angle
-                distance $ / r $ math-cos angle
+                distance $ / r $ cos angle
                 y0 $ - r distance
                 angle2 $ - (* 0.5 &PI) angle
                 theta $ * 2 angle2 $ - d 0.5
                 narrow? $ < (abs angle2) 0.001
                 dx $ if narrow?
                   * 2 r $ - d 0.5
-                  * r (math-tan angle) (math-sin theta)
+                  * r (math-tan angle) (sin theta)
                 dy $ if narrow? r $ + y0
-                  * r (math-tan angle) (math-cos theta)
+                  * r (math-tan angle) (cos theta)
               rotate-wave (- t 0.5) bend $ []
-                * dx $ math-cos rot-angle
+                * dx $ cos rot-angle
                 - r dy
-                * dx $ math-sin rot-angle
+                * dx $ sin rot-angle
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Number
