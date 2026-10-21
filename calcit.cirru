@@ -13,30 +13,26 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (store)
             let
-                states $ field store :states
-                cursor $ field states :cursor
-                state $ either (field states :data)
-                  {} $ :tab :portal
-                tab $ field state :tab
+                states $ decode-map-as (field store :states) (:: 'Map 'Tag 'Dynamic)
                 scaled 0.02
               scene ({})
                 group
                   {}
                     :scale $ [] scaled scaled scaled
                     :position $ [] -0.2 1.2 -0.2
-                  comp-helicoid $ >> states :helicoid
+                  comp-helicoid $ decode-map-as (>> states :helicoid) (:: 'Map 'Tag 'Dynamic)
                   ambient-light $ {} (:color 0x666666) (:intensity 6)
                   point-light $ {} (:color 0xffffff) (:intensity 1.4) (:distance 200)
                     :position $ [] 20 40 50
                   point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
                     :position $ [] 0 60 0
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'quatrefoil.schema/Component)
             :args $ [] $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
         'field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn field (value key)
-            option:unwrap-or (get value key) nil
+            .unwrap-or (get value key) nil
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
@@ -49,7 +45,7 @@
     'app.comp.helicoid $ %{} 'FileEntry
       :defs $ {}
         'as-number $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn as-number (value) (unsafe-coerce value Number)
+          :code $ quote $ defn as-number (value) (decode-map-as value 'Number)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Dynamic
@@ -58,8 +54,10 @@
           :code $ quote $ defcomp comp-helicoid (states)
             let
                 cursor $ field states :cursor
-                state $ or (field states :data)
-                  {} (:speed 48) (:bend 0) (:radius 20)
+                state $ decode-map-as
+                  or (field states :data)
+                    {} (:speed 48) (:bend 0) (:radius 20)
+                  :: 'Map 'Tag 'Number
               group ({})
                 tube $ {} (:points-fn helicoid-fn) (:factor state) (:radius 0.2) (:tubular-segments 800) (:radial-segments 12)
                   :position $ [] 0 0 0
@@ -75,44 +73,62 @@
                 ; comp-control state cursor :speed ([] 40 10 0) 0.3 ([] 0 100) 0xffffdd
                 comp-value
                   {} (:speed 0.3) (:show-text? true) (:label |speed)
-                    :value $ field state :speed
+                    :value $ .unwrap $ get state :speed
                     :position $ [] 40 10 0
                     :bound $ [] 0 100
                     :color 0xffffdd
                   fn (v1 d!)
-                    d! cursor $ assoc state :speed v1
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                    d! cursor $ assoc state :speed $ as-number v1
                 comp-value
                   {} (:speed 0.01) (:show-text? true) (:label |bend)
-                    :value $ field state :bend
+                    :value $ .unwrap $ get state :bend
                     :position $ [] 48 10 0
                     :bound $ [] 0 10
                     :color 0xaaaaff
                   fn (v1 d!)
-                    d! cursor $ assoc state :bend v1
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                    d! cursor $ assoc state :bend $ as-number v1
                 comp-value
                   {} (:speed 0.4) (:show-text? true) (:label |radius)
-                    :value $ field state :radius
+                    :value $ .unwrap $ get state :radius
                     :position $ [] 56 10 0
                     :bound $ [] 1 60
                     :color 0xaa7777
                   fn (v1 d!)
-                    d! cursor $ assoc state :radius v1
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                    d! cursor $ assoc state :radius $ as-number v1
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'quatrefoil.schema/Component)
             :args $ [] $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
         'field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn field (value key)
-            option:unwrap-or (get value key) nil
+            .unwrap-or (get value key) nil
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
         'helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn (t state)
             let
-                r $ as-number $ field state :radius
-                v $ as-number $ field state :speed
-                bend $ as-number $ field state :bend
+                r $ .unwrap $ get state :radius
+                v $ .unwrap $ get state :speed
+                bend $ .unwrap $ get state :bend
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
               rotate-wave (- t 0.5) bend $ []
@@ -121,14 +137,14 @@
                 * r (math-sin angle) (math-sin rot-angle)
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number $ :: 'Map 'Tag 'Number
             :return $ :: 'List 'Number
         'helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn-2 (t state)
             let
-                r $ as-number $ field state :radius
-                v $ as-number $ field state :speed
-                bend $ as-number $ field state :bend
+                r $ .unwrap $ get state :radius
+                v $ .unwrap $ get state :speed
+                bend $ .unwrap $ get state :bend
                 angle $ * t &PI
                 rot-angle $ + &PI $ * v (squeezing-01 t)
               rotate-wave (- t 0.5) bend $ []
@@ -137,32 +153,32 @@
                 * r (math-sin angle) (math-sin rot-angle)
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number $ :: 'Map 'Tag 'Number
             :return $ :: 'List 'Number
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
-            unsafe-coerce (js/Math.asin x) Number
+            as-number $ js/Math.asin x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Number
             :features $ #{} :js-ffi
         'math-cos $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-cos (x)
-            unsafe-coerce (js/Math.cos x) Number
+            as-number $ js/Math.cos x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Number
             :features $ #{} :js-ffi
         'math-sin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-sin (x)
-            unsafe-coerce (js/Math.sin x) Number
+            as-number $ js/Math.sin x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Number
             :features $ #{} :js-ffi
         'math-tan $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-tan (x)
-            unsafe-coerce (js/Math.tan x) Number
+            as-number $ js/Math.tan x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] 'Number
@@ -179,9 +195,9 @@
         'rotate-wave $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rotate-wave (dx bend v)
             let
-                x $ option:unwrap $ nth v 0
-                y $ option:unwrap $ nth v 1
-                z $ option:unwrap $ nth v 2
+                x $ .unwrap $ nth v 0
+                y $ .unwrap $ nth v 1
+                z $ .unwrap $ nth v 2
                 q1 $ quaternion 0 x y z
                 angle $ * bend &PI dx
                 half-angle $ * 0.5 angle
@@ -205,9 +221,9 @@
         'surface-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn surface-fn (t d state)
             let
-                r $ as-number $ field state :radius
-                v $ as-number $ field state :speed
-                bend $ as-number $ field state :bend
+                r $ .unwrap $ get state :radius
+                v $ .unwrap $ get state :speed
+                bend $ .unwrap $ get state :bend
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
                 out-r $ * r $ math-tan angle
@@ -227,7 +243,7 @@
                 * dx $ math-sin rot-angle
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Number
             :return $ :: 'List 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.helicoid
@@ -248,7 +264,7 @@
           :code $ quote $ deftrait MobileDetectHost
             .mobile? $ :: 'Fn $ {}
               :args $ [] 'app.main/MobileDetectHost
-              :return 'Bool
+              :return $ :: 'JsNullish 'String
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :mobile? |mobile
@@ -261,6 +277,7 @@
                   store $ updater @*store op op-data
                 ; js/console.log |Dispatch: op op-data store
                 reset! *store store
+                , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic 'Dynamic
@@ -271,10 +288,10 @@
               :position $ [] 0 0 8
               :aspect $ / (viewport-width) (viewport-height)
             let
-                canvas-el $ option:unwrap $ query-selector |canvas
+                canvas-el $ .unwrap $ query-selector |canvas
               init-renderer! canvas-el $ {} $ :background 0x110022
             render-app!
-            add-watch *store :changes $ fn (store prev) (render-app!)
+            add-watch! *store :changes $ fn (store prev) (render-app!)
             set! js/window.onkeydown handle-key-event
             render-control!
             handle-control-events
@@ -287,22 +304,23 @@
         'mobile? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mobile? ()
             let
-                detector $ unsafe-coerce (new mobile-detect js/window.navigator.userAgent) app.main/MobileDetectHost
-              detector .mobile?
+                detector $ js-cast (new mobile-detect js/window.navigator.userAgent) 'app.main/MobileDetectHost
+              js-present? $ detector .mobile?
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Bool)
             :args $ []
             :features $ #{} :js-ffi
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
-            if (some? build-errors) (hud! |error build-errors)
+            if (non-nil? build-errors) (hud! |error build-errors)
               do (hud! |ok~ nil) (clear-cache!)
                 when (mobile?) (clear-control-loop!) (handle-control-events)
-                remove-watch *store :changes
-                add-watch *store :changes $ fn (store prev) (render-app!)
+                remove-watch! *store :changes
+                add-watch! *store :changes $ fn (store prev) (render-app!)
                 render-app!
                 set! js/window.onkeydown handle-key-event
                 println |Code-updated.
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -319,7 +337,7 @@
             |@quamolit/quatrefoil-utils :refer $ inject-tree-methods
             quatrefoil.core :refer $ render-canvas! *global-tree init-controls! clear-cache! init-renderer! handle-key-event handle-control-events
             app.comp.container :refer $ comp-container
-            app.updater :refer $ [] updater
+            app.updater :refer $ updater
             |three :as THREE
             touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop!
             |mobile-detect :default mobile-detect

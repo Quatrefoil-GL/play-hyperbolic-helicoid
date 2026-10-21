@@ -22,10 +22,23 @@ PR 预览按 PR 编号/run/attempt 隔离；生产前缀与原服务器部署路
 串行队列保留待运行任务，构建和上传分别设定超时。Calcit 版本从 `deps.cirru`
 读取并由 Caps 工具链检查，避免在工作流重复硬编码版本。
 
-当前保持正式 Calcit/procs 0.27.0。正式 0.28 的只读检查被已发布 Quatrefoil
-0.1.5 中的 Option/spread 旧用法阻塞；等待兼容模块发布，不使用 hash 或新增 alpha
-依赖绕过，也不宣称本次部署改造已经完成语言升级。原 Caps 非 strict 安装仍存在
-JS-FFI 版本冲突警告，类型分析也仍有 partial/Dynamic 债务，未放宽或移除现有门禁。
+使用者影响：CLI 与 `@calcit/procs` 配对升级到正式 `0.30.1`；依赖使用已发布的
+Quatrefoil 0.1.8、Quaternion 0.2.14、Pointed Prompt 0.0.19 和 JS-FFI 0.2.3，
+不再使用旧 JS-FFI alpha tag，CI 改用 strict 模块解析。曲面公式、采样顺序、
+默认参数、分段数、材质及原前端部署路径不变，不涉及后端服务或存量数据迁移。
+
+速度、弯曲度、半径在真实状态入口解码为数值 Map，三条几何生成路径使用
+`Map<Tag, Number>`，而不是逐次伪强转；Math 返回值在宿主边界做数值解码。
+组件声明真实 Component 返回值，dispatch/reload 返回真实 Unit；Option 与 watcher
+采用公开首选方法，清理未使用的容器状态读取。mobile-detect 的 `mobile()` 实际返回
+字符串或 null，改用受检 host trait、`JsNullish<String>` 与 `js-present?`，不再虚报 Bool。
+
+本地中间验收使用配对 alpha.5，不能冒充正式 0.30.1 验收。与保持原几何公式的中间
+基线对比，四组参数共 2828 个曲线/曲面采样返回完全相同；默认渲染及通过本地辅助按钮
+调用原 dispatch 的非零弯曲、零速度和 reload 已验收，不代表 VR/原 3D 控件全部验收。
+本轮源码 unsafe 6→0、schemaDynamic 19→14，仍有异构状态/dispatch 动态边界，
+不宣称已完全类型化，不新增或放宽基线。正式工具链与构建由该提交的 Linux CI 验收；
+不新增上传校验脚本，继续使用 COS Action 内置 verify，不提交 js-out 或本地验收页。
 
 ### License
 
