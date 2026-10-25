@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import * as clt from './js-out/calcit.core.mjs';
+import {updater} from './js-out/app.updater.mjs';
+import {update_states} from './js-out/quatrefoil.cursor.mjs';
+assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.platform,'linux');
+const t=clt.init_tags(['states','unknown','panel','cursor','extra','retained','data','value']);
+const store=clt._$n__$M_(t.states,clt._$n__$M_(t.cursor,clt._$L_(),t.retained,clt._$n__$M_(t.data,'keep')),t.extra,'keep');
+const payload=clt._$L_(clt._$L_(t.panel),clt._$n__$M_(t.value,2));
+assert.equal(clt._$e_(updater(store,t.states,payload),update_states(store,payload)),true);
+const unknown=[t.unknown,'states',null,42,true,clt._$L_(t.states),clt._$n__$M_(t.value,2),clt.parse_cirru_edn(':: :states')];
+for(const op of unknown)assert.strictEqual(updater(store,op,null),store);
+process.stdout.write(JSON.stringify({passed:9,cases:['states-delegation','unknown-tag','String','Nil','Number','Bool','List','Map','Enum'],fallbackPreservesIdentity:true}));
