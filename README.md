@@ -48,6 +48,8 @@ sin/cos 精简另以配对 alpha.5 中间环境对照 main 的原包装器实现
 沿用完整 strict 并直接运行该测试，不增加脚本或测试框架。此回归不表示仍依赖
 asin/tan 宿主方法的全部曲面路径都能在原生后端运行，也不作未测量的性能承诺。
 
+后续源码清理仅将命名 store 的 `defatom` 改为 `defref`，并把 updater 的单一 Tag 分支从 `case-default` 改为字面量 `match`。原开放输入合同保留：`:states` 委托同一 `update-states`，其他输入返回原 store，不改曲面公式、参数、回调或 HUD。官方 Linux 0.30.1 中，改写前后分别通过原生/JS 的9项输入回放，原旋转测试、完整 strict、原公开定义/质量门禁和构建通过；63个生成 JS 文件的哈希全部一致。回放用例经官方入口临时附加再移除，并核对源码 blob 恢复，不进入最终 PR；未新增永久测试或脚本，也不以此代替 WebGL、VR、触控或 HMR 验收。
+
 ### License
 
 MIT

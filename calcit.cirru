@@ -248,7 +248,7 @@
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *store
+          :code $ quote $ defref *store
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
@@ -342,7 +342,9 @@
       :defs $ {} $ 'updater
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-data)
-            case-default op store $ :states $ update-states store op-data
+            match op
+              :states $ update-states store op-data
+              _ store
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic 'Dynamic
