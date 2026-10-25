@@ -25,7 +25,12 @@ if(process.argv[2]==='replay'){
   assert= store $ app.updater/updater store ({} (:value 2)) nil
   assert= store $ app.updater/updater store (:: :states) nil
   println |dispatch-native-ok`;
- const stdout=run('calcit',['eval','--dep','./','--',snippet]);assert.ok(stdout.includes('dispatch-native-ok'));writeFileSync('acceptance/native-'+stage+'.log',stdout);
+ const before=run('git',['hash-object','calcit.cirru']).trim();
+ assert.equal(q('def','app.updater/updater').tests.length,0);
+ const testCode='quote $ '+snippet.replaceAll('app.updater/updater','updater').replaceAll('quatrefoil.cursor/update-states','update-states');
+ run('calcit',['edit','add-test','app.updater/updater','migration-dispatch-replay','--input-format','cirru','--code',testCode]);
+ try{const raw=run('calcit',['test','app.updater/updater','--require-match','--format','json']);const t=JSON.parse(raw);assert.equal(t.selected,1);assert.equal(t.executed,1);assert.equal(t.passed,1);assert.equal(t.failed,0);writeFileSync('acceptance/native-'+stage+'.log','dispatch-native-ok\n');writeFileSync('acceptance/native-'+stage+'.json',raw);}
+ finally{run('calcit',['edit','rm-test','app.updater/updater','migration-dispatch-replay']);assert.equal(run('git',['hash-object','calcit.cirru']).trim(),before);}
  writeFileSync('acceptance/js-'+stage+'.json',run('node',['check-dispatch.mjs']));process.exit(0);
 }
 if(process.argv[2]==='gates'){
