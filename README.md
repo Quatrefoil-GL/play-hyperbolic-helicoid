@@ -1,54 +1,41 @@
-
 Play Hyperbolic Helicoid
 ----
 
-> Based on [Quatrefoil](https://github.com/Quamolit/quatrefoil.calcit).
-
 Live demo: http://repo.quamolit.org/play-hyperbolic-helicoid
-
-Video demo: https://www.bilibili.com/video/BV1qq4y1o7uK
-
-### About
-
+Video: https://www.bilibili.com/video/BV1qq4y1o7uK
 Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
-![image](https://user-images.githubusercontent.com/449224/134778726-e509522c-9197-4760-8df8-9c04040767ab.png)
+### 使用者影响
 
+配对使用正式 Calcit CLI/procs 0.32.1，类型标注由官方 CLI 迁移。
+Quatrefoil 0.2.0、Quaternion 0.2.19、Touch Control 0.0.35、Pointed Prompt 0.0.24、
+JS-FFI 0.2.9 组成一致的正式依赖图。包龄明确为 60 分钟，无单版本豁免。
+保留原类型/质量门禁和 hud! 页面提示，不新增验证脚本或测试框架，不提交生成目录。
 
-### Workflow
+曲面公式、采样顺序、默认速度/弯曲/半径、材质、状态解码及派发合同不变。
+21个项目定义的code/schema/元数据/原测试与官方格式化基线完全一致。
+旧@quamolit/quatrefoil-utils改为已存在的@quatrefoil/utils，其注入实现文件哈希一致；
+触控CSS从对应Caps模块加载，也与旧npm CSS哈希一致，因此移除两个重复npm包。
+Actions换为与原SHA对应的精确正式tag，接受可移动tag风险；移除过期procs包龄豁免。
 
-COS 上传使用 Action 1.2 内置 `public-base-url` verify，不增加独立上传校验脚本。
-PR 预览按 PR 编号/run/attempt 隔离；生产前缀与原服务器部署路径保持不变。
-串行队列保留待运行任务，构建和上传分别设定超时。Calcit 版本从 `deps.cirru`
-读取并由 Caps 工具链检查，避免在工作流重复硬编码版本。
+### 开发与验收
 
-使用者影响：CLI 与 `@calcit/procs` 配对升级到正式 `0.30.1`；依赖使用已发布的
-Quatrefoil 0.1.8、Quaternion 0.2.14、Pointed Prompt 0.0.19 和 JS-FFI 0.2.3，
-不再使用旧 JS-FFI alpha tag，CI 改用 strict 模块解析。曲面公式、采样顺序、
-默认参数、分段数、材质及原前端部署路径不变，不涉及后端服务或存量数据迁移。
+```sh
+caps --strict --ci
+yarn install --immutable
+caps verify --toolchain
+yarn compile
+cp assets/* js-out/
+yarn dev
+```
 
-速度、弯曲度、半径在真实状态入口解码为数值 Map，三条几何生成路径使用
-`Map<Tag, Number>`，而不是逐次伪强转。正弦/余弦直接使用公开的带类型 core
-`sin/cos`，删除两层重复的 Math 包装器及其逐采样解码；必要的 asin/tan 宿主
-返回值仍做数值解码，不改写反三角公式或宣称所有三角函数均已原生化。
-组件声明真实 Component 返回值，dispatch/reload 返回真实 Unit；Option 与 watcher
-采用公开首选方法，清理未使用的容器状态读取。mobile-detect 的 `mobile()` 实际返回
-字符串或 null，改用受检 host trait、`JsNullish<String>` 与 `js-present?`，不再虚报 Bool。
+完整strict、230/230定义、21/21公开定义、原rotate-wave附带测试、编译和构建通过。
+该原测试只覆盖恒等旋转，不将仍依赖asin/tan宿主的全部曲面路径冒充原生后端支持。
+实际IAB默认曲面、相机和刷新验收；未重做所有参数拖动、非零曲率、VR、移动硬件或跨GPU验收。
+保留真实异构状态/派发边界，不宣称类型债务清零。
 
-本地中间验收使用配对 alpha.5，不能冒充正式 0.30.1 验收。与保持原几何公式的中间
-基线对比，四组参数共 2828 个曲线/曲面采样返回完全相同；默认渲染及通过本地辅助按钮
-调用原 dispatch 的非零弯曲、零速度和 reload 已验收，不代表 VR/原 3D 控件全部验收。
-初次迁移将源码 unsafe 6→0、schemaDynamic 19→14；后续 sin/cos 精简保持此边界，
-没有重新放宽预算。仍有异构状态/dispatch 动态边界，
-不宣称已完全类型化，不新增或放宽基线。正式工具链与构建由该提交的 Linux CI 验收；
-不新增上传校验脚本，继续使用 COS Action 内置 verify，不提交 js-out 或本地验收页。
-
-sin/cos 精简另以配对 alpha.5 中间环境对照 main 的原包装器实现，2828 个采样的
-四个坐标完全一致。rotate-wave 增加一项附带原生回归（两条恒等旋转断言），CI
-沿用完整 strict 并直接运行该测试，不增加脚本或测试框架。此回归不表示仍依赖
-asin/tan 宿主方法的全部曲面路径都能在原生后端运行，也不作未测量的性能承诺。
-
-后续源码清理仅将命名 store 的 `defatom` 改为 `defref`，并把 updater 的单一 Tag 分支从 `case-default` 改为字面量 `match`。原开放输入合同保留：`:states` 委托同一 `update-states`，其他输入返回原 store，不改曲面公式、参数、回调或 HUD。官方 Linux 0.30.1 中，改写前后分别通过原生/JS 的9项输入回放，原旋转测试、完整 strict、原公开定义/质量门禁和构建通过；63个生成 JS 文件的哈希全部一致。回放用例经官方入口临时附加再移除，并核对源码 blob 恢复，不进入最终 PR；未新增永久测试或脚本，也不以此代替 WebGL、VR、触控或 HMR 验收。
+COS使用action1.2.0内置verify，无额外上传校验脚本。PR编号/run/attempt目录隔离，
+原生产CDN和rsync路径、条件不变；完整CI与实际COS结果在PR记录，不合并部署生产。
 
 ### License
 
