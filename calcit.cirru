@@ -27,15 +27,12 @@
                   point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
                     :position $ [] 0 60 0
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'quatrefoil.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
         'field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn field (value key)
             .unwrap-or (get value key) nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
+          :schema $ quote $ Fn (Map Tag Dynamic) Tag (-> Dynamic)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -47,9 +44,7 @@
         'as-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn as-number (value) (decode-map-as value 'Number)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Number) (:features :js-ffi)
         'comp-helicoid $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-helicoid (states)
             let
@@ -78,12 +73,9 @@
                     :bound $ [] 0 100
                     :color 0xffffdd
                   fn (v1 d!)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
+                    hint-fn $ Fn Dynamic
+                      Fn Dynamic Dynamic $ -> Unit
+                      -> Unit
                     d! cursor $ assoc state :speed $ as-number v1
                 comp-value
                   {} (:speed 0.01) (:show-text? true) (:label |bend)
@@ -92,12 +84,9 @@
                     :bound $ [] 0 10
                     :color 0xaaaaff
                   fn (v1 d!)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
+                    hint-fn $ Fn Dynamic
+                      Fn Dynamic Dynamic $ -> Unit
+                      -> Unit
                     d! cursor $ assoc state :bend $ as-number v1
                 comp-value
                   {} (:speed 0.4) (:show-text? true) (:label |radius)
@@ -106,23 +95,17 @@
                     :bound $ [] 1 60
                     :color 0xaa7777
                   fn (v1 d!)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
+                    hint-fn $ Fn Dynamic
+                      Fn Dynamic Dynamic $ -> Unit
+                      -> Unit
                     d! cursor $ assoc state :radius $ as-number v1
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'quatrefoil.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
         'field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn field (value key)
             .unwrap-or (get value key) nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
+          :schema $ quote $ Fn (Map Tag Dynamic) Tag (-> Dynamic)
         'helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn (t state)
             let
@@ -136,9 +119,8 @@
                 * r $ cos angle
                 * r (sin angle) (sin rot-angle)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Number $ :: 'Map 'Tag 'Number
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn Number (Map Tag Number)
+            -> $ List Number
         'helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn-2 (t state)
             let
@@ -152,32 +134,26 @@
                 * r $ cos angle
                 * r (sin angle) (sin rot-angle)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Number $ :: 'Map 'Tag 'Number
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn Number (Map Tag Number)
+            -> $ List Number
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
             as-number $ js/Math.asin x
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (-> Number) (:features :js-ffi)
         'math-tan $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-tan (x)
             as-number $ js/Math.tan x
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (-> Number) (:features :js-ffi)
         'quaternion-position $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn quaternion-position (value)
             match value $
               :quaternion s x y z
               [] x y z s
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'quaternion.core/Quaternion
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn quaternion.core/Quaternion
+            -> $ List Number
         'rotate-wave $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rotate-wave (dx bend v)
             let
@@ -193,9 +169,8 @@
                   , q2
               quaternion-position ret
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'List 'Number
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn Number Number (List Number)
+            -> $ List Number
           :tests $ [] $ %{} 'TestEntry (:name |identity-rotation)
             :code $ quote $ do
               assert= ([] 1 2 3 0)
@@ -209,8 +184,7 @@
               math-asin $ - (* 2 t0) 1
               , &PI
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] 'Number
+          :schema $ quote $ Fn Number (-> Number)
         'surface-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn surface-fn (t d state)
             let
@@ -235,9 +209,8 @@
                 - r dy
                 * dx $ sin rot-angle
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Number
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn Number Number (Map Tag Number)
+            -> $ List Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.helicoid
           :require
@@ -252,16 +225,15 @@
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Ref (Map Tag Dynamic)
         'MobileDetectHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait MobileDetectHost
-            .mobile? $ :: 'Fn $ {}
-              :args $ [] 'app.main/MobileDetectHost
-              :return $ :: 'JsNullish 'String
+            .mobile? $ quote $ Fn app.main/MobileDetectHost
+              -> $ JsNullish String
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :mobile? |mobile
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op op-data)
             if (list? op)
@@ -272,9 +244,7 @@
                 reset! *store store
                 , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic Dynamic (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (load-console-formatter!) (inject-tree-methods)
             set-perspective-camera! $ {} (:fov 40) (:near 0.1) (:far 100)
@@ -291,18 +261,14 @@
             init-controls!
             println |App-started!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mobile? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mobile? ()
             let
                 detector $ js-cast (new mobile-detect js/window.navigator.userAgent) 'app.main/MobileDetectHost
               js-present? $ detector .mobile?
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Bool) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (non-nil? build-errors) (hud! |error build-errors)
@@ -315,19 +281,16 @@
                 println |Code-updated.
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! () (; println "|Render app:")
             render-canvas! (comp-container @*store) dispatch!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            |@quamolit/quatrefoil-utils :refer $ inject-tree-methods
+            |@quatrefoil/utils :refer $ inject-tree-methods
             quatrefoil.core :refer $ render-canvas! *global-tree init-controls! clear-cache! init-renderer! handle-key-event handle-control-events
             app.comp.container :refer $ comp-container
             app.updater :refer $ updater
@@ -346,9 +309,8 @@
               :states $ update-states store op-data
               _ store
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic Dynamic
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ quatrefoil.cursor :refer $ update-states
