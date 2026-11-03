@@ -13,14 +13,16 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (store)
             let
-                states $ decode-map-as (field store :states) (:: 'Map 'Tag 'Dynamic)
+                states $ decode-map-as (field store :states)
+                  quote $ Map Tag Dynamic
                 scaled 0.02
               scene ({})
                 group
                   {}
                     :scale $ [] scaled scaled scaled
                     :position $ [] -0.2 1.2 -0.2
-                  comp-helicoid $ decode-map-as (>> states :helicoid) (:: 'Map 'Tag 'Dynamic)
+                  comp-helicoid $ decode-map-as (>> states :helicoid)
+                    quote $ Map Tag Dynamic
                   ambient-light $ {} (:color 0x666666) (:intensity 6)
                   point-light $ {} (:color 0xffffff) (:intensity 1.4) (:distance 200)
                     :position $ [] 20 40 50
@@ -52,7 +54,7 @@
                 state $ decode-map-as
                   or (field states :data)
                     {} (:speed 48) (:bend 0) (:radius 20)
-                  :: 'Map 'Tag 'Number
+                  quote $ Map Tag Number
               group ({})
                 tube $ {} (:points-fn helicoid-fn) (:factor state) (:radius 0.2) (:tubular-segments 800) (:radial-segments 12)
                   :position $ [] 0 0 0
@@ -60,7 +62,15 @@
                 tube $ {} (:points-fn helicoid-fn-2) (:factor state) (:radius 0.2) (:tubular-segments 400) (:radial-segments 12)
                   :position $ [] 0 0 0
                   :material $ {} (:kind :mesh-standard) (:color 0xcccc77) (:opacity 1) (:transparent true)
-                parametric $ {} (:func surface-fn) (:data state) (:slices 100) (:stacks 100)
+                parametric $ {}
+                  :func $ fn (u v data)
+                    hint-fn $ Fn Number Number (Option Dynamic)
+                      -> $ Tuple Number Number Number Number
+                    surface-fn u v $ decode-map-as (.unwrap data)
+                      quote $ Map Tag Number
+                  :data state
+                  :slices 100
+                  :stacks 100
                   :position $ [] 0 0 0
                   :material $ {} (:kind :mesh-lambert) (:opacity 0.8) (:transparent true) (:color 0x5e5ed5)
                 point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
@@ -120,7 +130,7 @@
                 * r (sin angle) (sin rot-angle)
           :examples $ []
           :schema $ quote $ Fn Number (Map Tag Number)
-            -> $ List Number
+            -> $ Tuple Number Number Number Number
         'helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn-2 (t state)
             let
@@ -135,7 +145,7 @@
                 * r (sin angle) (sin rot-angle)
           :examples $ []
           :schema $ quote $ Fn Number (Map Tag Number)
-            -> $ List Number
+            -> $ Tuple Number Number Number Number
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
             as-number $ js/Math.asin x
@@ -153,13 +163,10 @@
               [] x y z s
           :examples $ []
           :schema $ quote $ Fn quaternion.core/Quaternion
-            -> $ List Number
+            -> $ Tuple Number Number Number Number
         'rotate-wave $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rotate-wave (dx bend v)
-            let
-                x $ .unwrap $ nth v 0
-                y $ .unwrap $ nth v 1
-                z $ .unwrap $ nth v 2
+            let[] (x y z) v $ let
                 q1 $ quaternion 0 x y z
                 angle $ * bend &PI dx
                 half-angle $ * 0.5 angle
@@ -169,8 +176,8 @@
                   , q2
               quaternion-position ret
           :examples $ []
-          :schema $ quote $ Fn Number Number (List Number)
-            -> $ List Number
+          :schema $ quote $ Fn Number Number (Tuple Number Number Number)
+            -> $ Tuple Number Number Number Number
           :tests $ [] $ %{} 'TestEntry (:name |identity-rotation)
             :code $ quote $ do
               assert= ([] 1 2 3 0)
@@ -210,7 +217,7 @@
                 * dx $ sin rot-angle
           :examples $ []
           :schema $ quote $ Fn Number Number (Map Tag Number)
-            -> $ List Number
+            -> $ Tuple Number Number Number Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.helicoid
           :require
