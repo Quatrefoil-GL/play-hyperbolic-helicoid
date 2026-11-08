@@ -9,20 +9,20 @@
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
-      :defs $ {}
-        'comp-container $ %{} 'CodeEntry (:doc |)
+      :defs $ {} $ 'comp-container
+        %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (store)
             let
-                states $ decode-map-as (field store :states)
-                  quote $ Map Tag Dynamic
+                states $ decode-map-as
+                  .unwrap $ get store :states
+                  Map Tag Dynamic
                 scaled 0.02
               scene ({})
                 group
                   {}
                     :scale $ [] scaled scaled scaled
                     :position $ [] -0.2 1.2 -0.2
-                  comp-helicoid $ decode-map-as (>> states :helicoid)
-                    quote $ Map Tag Dynamic
+                  comp-helicoid $ decode-map-as (>> states :helicoid) (Map Tag Dynamic)
                   ambient-light $ {} (:color 0x666666) (:intensity 6)
                   point-light $ {} (:color 0xffffff) (:intensity 1.4) (:distance 200)
                     :position $ [] 20 40 50
@@ -30,11 +30,6 @@
                     :position $ [] 0 60 0
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
-        'field $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn field (value key)
-            .unwrap-or (get value key) nil
-          :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag (-> Dynamic)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -50,11 +45,16 @@
         'comp-helicoid $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-helicoid (states)
             let
-                cursor $ field states :cursor
+                cursor $ decode-map-as
+                  .unwrap $ get states :cursor
+                  List Tag
                 state $ decode-map-as
-                  or (field states :data)
-                    {} (:speed 48) (:bend 0) (:radius 20)
-                  quote $ Map Tag Number
+                  match (get states :data)
+                    (:some raw)
+                      or raw $ {} (:speed 48) (:bend 0) (:radius 20)
+                    (:none)
+                      {} (:speed 48) (:bend 0) (:radius 20)
+                  Map Tag Number
               group ({})
                 tube $ {} (:points-fn helicoid-fn) (:factor state) (:radius 0.2) (:tubular-segments 800) (:radial-segments 12)
                   :position $ [] 0 0 0
@@ -64,10 +64,10 @@
                   :material $ {} (:kind :mesh-standard) (:color 0xcccc77) (:opacity 1) (:transparent true)
                 parametric $ {}
                   :func $ fn (u v data)
-                    hint-fn $ Fn Number Number (Option Dynamic)
+                    hint-fn $ Fn Number Number
+                      Option $ Map Tag Number
                       -> $ Tuple Number Number Number Number
-                    surface-fn u v $ decode-map-as (.unwrap data)
-                      quote $ Map Tag Number
+                    surface-fn u v $ decode-map-as (.unwrap data) (Map Tag Number)
                   :data state
                   :slices 100
                   :stacks 100
@@ -83,8 +83,8 @@
                     :bound $ [] 0 100
                     :color 0xffffdd
                   fn (v1 d!)
-                    hint-fn $ Fn Dynamic
-                      Fn Dynamic Dynamic $ -> Unit
+                    hint-fn $ Fn Number
+                      Fn (List Tag) (Map Tag Number) (-> Unit)
                       -> Unit
                     d! cursor $ assoc state :speed $ as-number v1
                 comp-value
@@ -94,8 +94,8 @@
                     :bound $ [] 0 10
                     :color 0xaaaaff
                   fn (v1 d!)
-                    hint-fn $ Fn Dynamic
-                      Fn Dynamic Dynamic $ -> Unit
+                    hint-fn $ Fn Number
+                      Fn (List Tag) (Map Tag Number) (-> Unit)
                       -> Unit
                     d! cursor $ assoc state :bend $ as-number v1
                 comp-value
@@ -105,17 +105,12 @@
                     :bound $ [] 1 60
                     :color 0xaa7777
                   fn (v1 d!)
-                    hint-fn $ Fn Dynamic
-                      Fn Dynamic Dynamic $ -> Unit
+                    hint-fn $ Fn Number
+                      Fn (List Tag) (Map Tag Number) (-> Unit)
                       -> Unit
                     d! cursor $ assoc state :radius $ as-number v1
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
-        'field $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn field (value key)
-            .unwrap-or (get value key) nil
-          :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag (-> Dynamic)
         'helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn (t state)
             let
@@ -235,8 +230,7 @@
           :schema $ quote $ Ref (Map Tag Dynamic)
         'MobileDetectHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait MobileDetectHost
-            .mobile? $ quote $ Fn app.main/MobileDetectHost
-              -> $ JsNullish String
+            .mobile? $ Fn app.main/MobileDetectHost $ -> (JsNullish String)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :mobile? |mobile

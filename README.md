@@ -5,7 +5,11 @@ Live demo: http://repo.quamolit.org/play-hyperbolic-helicoid
 Video: https://www.bilibili.com/video/BV1qq4y1o7uK
 Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
-### 使用者影响
+### Calcit 0.37.0 使用说明
+
+使用正式 Calcit 与 `@calcit/procs` 0.37.0、Quatrefoil 0.3.4 和 Touch Control 0.0.39。升级后重新安装依赖并构建。三个控件使用 Number 及数值 Map，曲面适配器使用数值 Map 的 Option。原 rotate-wave 测试通过。实际 WebGL 画面尚未复验。
+
+### 历史：0.34.2 迁移
 
 配对使用正式 Calcit CLI/procs 0.34.2、Quatrefoil 0.3.0、Quaternion 0.2.19、
 Touch Control 0.0.36、Pointed Prompt 0.0.24、JS-FFI 0.2.9。
