@@ -5,9 +5,16 @@ Live demo: http://repo.quamolit.org/play-hyperbolic-helicoid
 Video: https://www.bilibili.com/video/BV1qq4y1o7uK
 Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
-### Calcit 0.37.0 使用说明
+### Calcit 0.38.0 使用说明
 
-使用正式 Calcit 与 `@calcit/procs` 0.37.0、Quatrefoil 0.3.4 和 Touch Control 0.0.39。升级后重新安装依赖并构建。三个控件使用 Number 及数值 Map，曲面适配器使用数值 Map 的 Option。原 rotate-wave 测试通过。实际 WebGL 画面尚未复验。
+升级时同时使用正式 Calcit 和 `@calcit/procs` 0.38.0，重新安装依赖并构建。
+本地开发若有旧版热重载会话，刷新页面以重建场景状态。
+速度、弯曲、半径的默认值和操作方式沿用原版。
+
+控件和几何函数共用 `HelicoidState`，三个字段都必须是 Number。
+渲染入口通过 `HelicoidPayload` 兼容旧数值 Map，并继续接受直接游标和旧 `:states` pair。
+缺字段或类型错误会在修改场景前报错，`nil` 和 `false` 仍恢复默认值。
+只有 `[:helicoid]` 游标能更新本页的曲面状态。
 
 ### 历史：0.34.2 迁移
 

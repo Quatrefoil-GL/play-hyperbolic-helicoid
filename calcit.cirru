@@ -13,48 +13,36 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (store)
             let
-                states $ decode-map-as
-                  .unwrap $ get store :states
-                  Map Tag Dynamic
                 scaled 0.02
               scene ({})
                 group
                   {}
                     :scale $ [] scaled scaled scaled
                     :position $ [] -0.2 1.2 -0.2
-                  comp-helicoid $ decode-map-as (>> states :helicoid) (Map Tag Dynamic)
+                  comp-helicoid store
                   ambient-light $ {} (:color 0x666666) (:intensity 6)
                   point-light $ {} (:color 0xffffff) (:intensity 1.4) (:distance 200)
                     :position $ [] 20 40 50
                   point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
                     :position $ [] 0 60 0
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
             quatrefoil.alias :refer $ group box sphere point-light ambient-light scene text
-            quatrefoil.core :refer $ defcomp >>
+            quatrefoil.core :refer $ defcomp
             app.comp.helicoid :refer $ comp-helicoid
     'app.comp.helicoid $ %{} 'FileEntry
       :defs $ {}
         'as-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn as-number (value) (decode-map-as value 'Number)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Number) (:features :js-ffi)
+          :schema $ quote $ Fn Raw (-> Number) (:generics Raw)
         'comp-helicoid $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-helicoid (states)
+          :code $ quote $ defcomp comp-helicoid (state)
             let
-                cursor $ decode-map-as
-                  .unwrap $ get states :cursor
-                  List Tag
-                state $ decode-map-as
-                  match (get states :data)
-                    (:some raw)
-                      or raw $ {} (:speed 48) (:bend 0) (:radius 20)
-                    (:none)
-                      {} (:speed 48) (:bend 0) (:radius 20)
-                  Map Tag Number
+                cursor app.updater/helicoid-cursor
               group ({})
                 tube $ {} (:points-fn helicoid-fn) (:factor state) (:radius 0.2) (:tubular-segments 800) (:radial-segments 12)
                   :position $ [] 0 0 0
@@ -64,10 +52,9 @@
                   :material $ {} (:kind :mesh-standard) (:color 0xcccc77) (:opacity 1) (:transparent true)
                 parametric $ {}
                   :func $ fn (u v data)
-                    hint-fn $ Fn Number Number
-                      Option $ Map Tag Number
+                    hint-fn $ Fn Number Number (Option app.updater/HelicoidState)
                       -> $ Tuple Number Number Number Number
-                    surface-fn u v $ decode-map-as (.unwrap data) (Map Tag Number)
+                    surface-fn u v $ .unwrap data
                   :data state
                   :slices 100
                   :stacks 100
@@ -75,48 +62,47 @@
                   :material $ {} (:kind :mesh-lambert) (:opacity 0.8) (:transparent true) (:color 0x5e5ed5)
                 point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
                   :position $ [] 20 40 50
-                ; comp-control state cursor :speed ([] 40 10 0) 0.3 ([] 0 100) 0xffffdd
                 comp-value
                   {} (:speed 0.3) (:show-text? true) (:label |speed)
-                    :value $ .unwrap $ get state :speed
+                    :value $ :speed state
                     :position $ [] 40 10 0
                     :bound $ [] 0 100
                     :color 0xffffdd
                   fn (v1 d!)
                     hint-fn $ Fn Number
-                      Fn (List Tag) (Map Tag Number) (-> Unit)
+                      Fn (List Tag) app.updater/HelicoidState $ -> Unit
                       -> Unit
-                    d! cursor $ assoc state :speed $ as-number v1
+                    d! cursor $ &struct:assoc state :speed v1
                 comp-value
                   {} (:speed 0.01) (:show-text? true) (:label |bend)
-                    :value $ .unwrap $ get state :bend
+                    :value $ :bend state
                     :position $ [] 48 10 0
                     :bound $ [] 0 10
                     :color 0xaaaaff
                   fn (v1 d!)
                     hint-fn $ Fn Number
-                      Fn (List Tag) (Map Tag Number) (-> Unit)
+                      Fn (List Tag) app.updater/HelicoidState $ -> Unit
                       -> Unit
-                    d! cursor $ assoc state :bend $ as-number v1
+                    d! cursor $ &struct:assoc state :bend v1
                 comp-value
                   {} (:speed 0.4) (:show-text? true) (:label |radius)
-                    :value $ .unwrap $ get state :radius
+                    :value $ :radius state
                     :position $ [] 56 10 0
                     :bound $ [] 1 60
                     :color 0xaa7777
                   fn (v1 d!)
                     hint-fn $ Fn Number
-                      Fn (List Tag) (Map Tag Number) (-> Unit)
+                      Fn (List Tag) app.updater/HelicoidState $ -> Unit
                       -> Unit
-                    d! cursor $ assoc state :radius $ as-number v1
+                    d! cursor $ &struct:assoc state :radius v1
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> quatrefoil.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :js-ffi)
         'helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn (t state)
             let
-                r $ .unwrap $ get state :radius
-                v $ .unwrap $ get state :speed
-                bend $ .unwrap $ get state :bend
+                r $ :radius state
+                v $ :speed state
+                bend $ :bend state
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
               rotate-wave (- t 0.5) bend $ []
@@ -124,14 +110,14 @@
                 * r $ cos angle
                 * r (sin angle) (sin rot-angle)
           :examples $ []
-          :schema $ quote $ Fn Number (Map Tag Number)
+          :schema $ quote $ Fn Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
         'helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn-2 (t state)
             let
-                r $ .unwrap $ get state :radius
-                v $ .unwrap $ get state :speed
-                bend $ .unwrap $ get state :bend
+                r $ :radius state
+                v $ :speed state
+                bend $ :bend state
                 angle $ * t &PI
                 rot-angle $ + &PI $ * v (squeezing-01 t)
               rotate-wave (- t 0.5) bend $ []
@@ -139,7 +125,7 @@
                 * r $ cos angle
                 * r (sin angle) (sin rot-angle)
           :examples $ []
-          :schema $ quote $ Fn Number (Map Tag Number)
+          :schema $ quote $ Fn Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
@@ -190,9 +176,9 @@
         'surface-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn surface-fn (t d state)
             let
-                r $ .unwrap $ get state :radius
-                v $ .unwrap $ get state :speed
-                bend $ .unwrap $ get state :bend
+                r $ :radius state
+                v $ :speed state
+                bend $ :bend state
                 angle $ * t &PI
                 rot-angle $ * v $ squeezing-01 t
                 out-r $ * r $ math-tan angle
@@ -211,7 +197,7 @@
                 - r dy
                 * dx $ sin rot-angle
           :examples $ []
-          :schema $ quote $ Fn Number Number (Map Tag Number)
+          :schema $ quote $ Fn Number Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.helicoid
@@ -223,11 +209,9 @@
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *store
-            {} $ :states $ {}
-              :cursor $ []
+          :code $ quote $ defref *store app.updater/default-state
           :examples $ []
-          :schema $ quote $ Ref (Map Tag Dynamic)
+          :schema $ quote $ Ref app.updater/HelicoidState
         'MobileDetectHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait MobileDetectHost
             .mobile? $ Fn app.main/MobileDetectHost $ -> (JsNullish String)
@@ -238,12 +222,17 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op op-data)
             if (list? op)
-              recur :states $ [] op op-data
               let
-                  store $ updater @*store op op-data
-                ; js/console.log |Dispatch: op op-data store
-                reset! *store store
-                , &unit
+                  cursor $ decode-map-as op $ List Tag
+                reset! *store $ updater @*store cursor op-data
+              when (= op :states)
+                let
+                    pair $ decode-map-as op-data $ List Dynamic
+                    cursor $ decode-map-as
+                      .unwrap $ nth pair 0
+                      List Tag
+                  reset! *store $ updater @*store cursor $ .unwrap (nth pair 1)
+            , &unit
           :examples $ []
           :schema $ quote $ Fn Dynamic Dynamic (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
@@ -303,15 +292,39 @@
             quatrefoil.dsl.object3d-dom :refer $ set-perspective-camera!
             js-ffi.browser :refer $ viewport-width viewport-height query-selector
     'app.updater $ %{} 'FileEntry
-      :defs $ {} $ 'updater
-        %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn updater (store op op-data)
-            match op
-              :states $ update-states store op-data
-              _ store
+      :defs $ {}
+        'HelicoidPayload $ %{} 'CodeEntry
+          :doc "|State from current controls or the previous numeric Map representation."
+          :code $ quote $ defunion HelicoidPayload HelicoidState (Map Tag Number)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic Dynamic
-            -> $ Map Tag Dynamic
+          :schema $ quote UnionDef
+        'HelicoidState $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct HelicoidState (:speed Number) (:bend Number) (:radius Number)
+          :examples $ []
+          :schema $ quote StructDef
+        'default-state $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def default-state (HelicoidState :speed 48 :bend 0 :radius 20)
+          :examples $ []
+          :schema $ quote app.updater/HelicoidState
+        'helicoid-cursor $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def helicoid-cursor ([] :helicoid)
+          :examples $ []
+          :schema $ quote $ List Tag
+        'updater $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn updater (store cursor raw)
+            if (= cursor helicoid-cursor)
+              if (not raw) default-state $ let
+                  state $ decode-map-as raw HelicoidPayload
+                match state
+                  (Map fields)
+                    HelicoidState :speed
+                      .unwrap $ get fields :speed
+                      , :bend
+                        .unwrap $ get fields :bend
+                        , :radius $ .unwrap $ get fields :radius
+                  (HelicoidState checked) checked
+              , store
+          :examples $ []
+          :schema $ quote $ Fn app.updater/HelicoidState (List Tag) Raw (-> app.updater/HelicoidState) (:generics Raw)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
-          :require $ quatrefoil.cursor :refer $ update-states
