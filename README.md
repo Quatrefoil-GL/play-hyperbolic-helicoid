@@ -5,9 +5,9 @@ Live demo: http://repo.quamolit.org/play-hyperbolic-helicoid
 Video: https://www.bilibili.com/video/BV1qq4y1o7uK
 Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
-### Calcit 0.38.0 使用说明
+### Calcit 0.40.0 使用说明
 
-升级时同时使用正式 Calcit 和 `@calcit/procs` 0.38.0，重新安装依赖并构建。
+升级时同时使用正式 Calcit 和 `@calcit/procs` 0.40.0，重新安装依赖并构建。
 本地开发若有旧版热重载会话，刷新页面以重建场景状态。
 速度、弯曲、半径的默认值和操作方式沿用原版。
 
