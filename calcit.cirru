@@ -222,21 +222,29 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op op-data)
             if (list? op)
-              recur :states $ [] op op-data
-              do
-                when (= op :states)
-                  let
-                      pair $ decode-map-as op-data $ List Dynamic
-                      cursor $ decode-map-as
-                        .unwrap $ nth pair 0
-                        List Tag
-                      raw $ .unwrap $ nth pair 1
-                    reset! *store $ if (= cursor app.updater/helicoid-cursor)
-                      if (not raw) app.updater/default-state $ app.updater/read-state $ decode-map-as raw app.updater/HelicoidPayload
-                      , @*store
-                , &unit
+              dispatch-state!
+                decode-map-as op $ List Tag
+                , op-data
+              when
+                and (tag? op) (= op :states)
+                let
+                    pair $ decode-map-as op-data $ List Dynamic
+                    cursor $ decode-map-as
+                      .unwrap $ nth pair 0
+                      List Tag
+                    raw $ .unwrap $ nth pair 1
+                  dispatch-state! cursor raw
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Action Payload (-> Unit) (:generics Action Payload) (:features :js-ffi)
+        'dispatch-state! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-state! (cursor raw)
+            reset! *store $ if (= cursor app.updater/helicoid-cursor)
+              if (not raw) app.updater/default-state $ app.updater/read-state $ decode-map-as raw app.updater/HelicoidPayload
+              , @*store
+            , &unit
+          :examples $ []
+          :schema $ quote $ Fn (List Tag) Raw (-> Unit) (:generics Raw)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (load-console-formatter!) (inject-tree-methods)
             set-perspective-camera! $ {} (:fov 40) (:near 0.1) (:far 100)
@@ -306,7 +314,7 @@
         'default-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def default-state (HelicoidState :speed 48 :bend 0 :radius 20)
           :examples $ []
-          :schema $ quote app.updater/HelicoidState
+          :schema $ quote HelicoidState
         'helicoid-cursor $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def helicoid-cursor ([] :helicoid)
           :examples $ []
@@ -322,6 +330,6 @@
                     , :radius $ .unwrap $ get fields :radius
               (HelicoidState checked) checked
           :examples $ []
-          :schema $ quote $ Fn app.updater/HelicoidPayload (-> app.updater/HelicoidState)
+          :schema $ quote $ Fn HelicoidPayload (-> HelicoidState)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
