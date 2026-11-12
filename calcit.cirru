@@ -227,24 +227,47 @@
                 , op-data
               when
                 and (tag? op) (= op :states)
-                let
-                    pair $ decode-map-as op-data $ List Dynamic
-                    cursor $ decode-map-as
-                      .unwrap $ nth pair 0
-                      List Tag
-                    raw $ .unwrap $ nth pair 1
-                  dispatch-state! cursor raw
+                if (list? op-data)
+                  let
+                      cursor $ decode-map-as
+                        .unwrap $ nth op-data 0
+                        List Tag
+                      raw $ .unwrap $ nth op-data 1
+                    dispatch-state! cursor raw
+                  raise "|Expected a state event list"
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Action Payload (-> Unit) (:generics Action Payload) (:features :js-ffi)
+          :schema $ quote $ Fn Action Payload (-> Unit) (:generics Action Payload) (:features :js-ffi :state)
+          :tests $ [] $ %{} 'TestEntry (:name |legacy-state-event)
+            :code $ quote $ do
+              app.main/dispatch! ([] :helicoid)
+                {} (:speed 12) (:bend 2) (:radius 8)
+              assert= 12 $ :speed @app.main/*store
+              app.main/dispatch! :states $ [] ([] :unrelated) |ignored-value :extra
+              assert= 12 $ :speed @app.main/*store
+              app.main/dispatch! :states $ [] ([] :helicoid) false :extra
+              assert= app.updater/default-state @app.main/*store
+              app.main/dispatch! :states $ [] ([] :helicoid) (app.updater/HelicoidState :speed 9 :bend 2 :radius 8)
+              assert= 9 $ :speed @app.main/*store
+              app.main/dispatch! :states $ [] ([] :helicoid) nil
+              assert= app.updater/default-state @app.main/*store
+              app.main/dispatch! ([] :helicoid)
+                {} (:speed 12) (:bend 2) (:radius 8)
+              app.main/dispatch! :states $ [] ([] :helicoid) &unit
+              assert= app.updater/default-state @app.main/*store
+            :tags $ #{} :state
         'dispatch-state! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-state! (cursor raw)
             reset! *store $ if (= cursor app.updater/helicoid-cursor)
-              if (not raw) app.updater/default-state $ app.updater/read-state $ decode-map-as raw app.updater/HelicoidPayload
+              if
+                or (nil? raw)
+                  and (bool? raw) (not raw)
+                  = :unit $ type-of raw
+                , app.updater/default-state $ app.updater/read-state $ decode-map-as raw app.updater/HelicoidPayload
               , @*store
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (List Tag) Raw (-> Unit) (:generics Raw)
+          :schema $ quote $ Fn (List Tag) Raw (-> Unit) (:generics Raw) (:features :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (load-console-formatter!) (inject-tree-methods)
             set-perspective-camera! $ {} (:fov 40) (:near 0.1) (:far 100)
@@ -261,7 +284,7 @@
             init-controls!
             println |App-started!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mobile? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mobile? ()
             let
@@ -281,12 +304,12 @@
                 println |Code-updated.
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! () (; println "|Render app:")
             render-canvas! (comp-container @*store) dispatch!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :state)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
