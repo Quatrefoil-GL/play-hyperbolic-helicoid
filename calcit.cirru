@@ -26,7 +26,7 @@
                   point-light $ {} (:color 0xffffff) (:intensity 2) (:distance 200)
                     :position $ [] 0 60 0
           :examples $ []
-          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :io :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -96,7 +96,7 @@
                       -> Unit
                     d! cursor $ &struct:assoc state :radius v1
           :examples $ []
-          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.updater/HelicoidState (-> quatrefoil.schema/Component) (:features :io :js-ffi)
         'helicoid-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn (t state)
             let
@@ -112,6 +112,7 @@
           :examples $ []
           :schema $ quote $ Fn Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
+            :features :io
         'helicoid-fn-2 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn helicoid-fn-2 (t state)
             let
@@ -127,6 +128,7 @@
           :examples $ []
           :schema $ quote $ Fn Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
+            :features :io
         'math-asin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-asin (x)
             as-number $ js/Math.asin x
@@ -159,6 +161,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number (Tuple Number Number Number)
             -> $ Tuple Number Number Number Number
+            :features :io
           :tests $ [] $ %{} 'TestEntry (:name |identity-rotation)
             :code $ quote $ do
               assert= ([] 1 2 3 0)
@@ -199,6 +202,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number app.updater/HelicoidState
             -> $ Tuple Number Number Number Number
+            :features :io
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.helicoid
           :require
