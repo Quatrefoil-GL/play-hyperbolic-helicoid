@@ -7,7 +7,7 @@ Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
 ### Calcit 0.44.0 使用说明
 
-升级时同时使用正式 Calcit 和 `@calcit/procs` 0.44.0、Quatrefoil 0.3.7、Quaternion 0.2.26、Pointed Prompt 0.0.30 和 JS-FFI 0.2.19，重新安装依赖并构建。
+升级时同时使用正式 Calcit 和 `@calcit/procs` 0.44.0、Quatrefoil 0.3.8、Quaternion 0.2.26、Pointed Prompt 0.0.31 和 JS-FFI 0.2.23，重新安装依赖并构建。
 本地开发若有旧版热重载会话，刷新页面以重建场景状态。
 速度、弯曲、半径的默认值和操作方式沿用原版。旋转和曲面调用链声明 `:io`，反映 Quaternion 逆运算的诊断。
 
