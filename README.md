@@ -5,9 +5,9 @@ Live demo: http://repo.quamolit.org/play-hyperbolic-helicoid
 Video: https://www.bilibili.com/video/BV1qq4y1o7uK
 Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 
-### Calcit 0.44.0 使用说明
+### Calcit 0.45.1 使用说明
 
-升级时同时使用正式 Calcit 和 `@calcit/procs` 0.44.0、Quatrefoil 0.3.8、Quaternion 0.2.26、Pointed Prompt 0.0.31 和 JS-FFI 0.2.23，重新安装依赖并构建。
+升级时同时使用正式 Calcit 和 `@calcit/procs` 0.45.1、Quatrefoil 0.3.9、Quaternion 0.2.27、Pointed Prompt 0.0.32 和 JS-FFI 0.2.24，重新安装依赖并构建。
 本地开发若有旧版热重载会话，刷新页面以重建场景状态。
 速度、弯曲、半径的默认值和操作方式沿用原版。旋转和曲面调用链声明 `:io`，反映 Quaternion 逆运算的诊断。
 
@@ -15,6 +15,7 @@ Inspired by https://www.youtube.com/watch?v=0e5vzTsLh2s
 渲染入口通过 `HelicoidPayload` 兼容旧数值 Map，并继续接受直接游标和旧 `:states` pair。
 缺字段或类型错误会在修改场景前报错，`nil` 和 `false` 仍恢复默认值。
 只有 `[:helicoid]` 游标能更新本页的曲面状态。
+本次通过 252 个定义的严格检查、原两项测试和构建；尚未复验浏览器曲面与控件交互。
 
 ### 历史：0.34.2 迁移
 
